@@ -1,0 +1,25 @@
+resource "aws_instance" "web" {
+  count         = "${var.ec2_count}"
+  ami           = "${var.ami_id}"
+  instance_type = "${var.instance_type}"
+
+user_data  = <<-EOF
+  #!/bin/bash
+  sudo yum update -y
+  sudo amazon-linux-extras install docker -y
+  sudo systemctl start docker
+  sudo systemctl enable docker
+  sudo usermod -a -G docker ec2-user
+  docker image pull ngnix
+  docker container run -it --name KT_nginx -p 80:80 nginx
+EOF
+ 
+  tags {
+    Name = "Keet_Health"
+  }
+}
+
+output "internal_ip" {
+  value = aws_instance.webserver.private_ip
+
+}
